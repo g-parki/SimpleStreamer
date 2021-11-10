@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+  </head>
+    <body>
+        <div id="vid-container" style="display: flex; justify-content: center; width: 100%;">
+          <img id="loader" src="{{ url_for('static', filename='loader.gif') }}" style="position: absolute;" width="50%">
+          <img id="video-feed" src="{{ url_for('feed') }}" width="95%" height="auto">
+        </div>
+      </div>
+    </body>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
+    <script>
+      $(document).ready(function(){
+	      $.ajaxSetup({ cache: false });
+        $("#video-feed").on("load", () => {
+          $("#loader").css("display", "none");
+          $("#download-container").css("display", "block");
+        })
+      })
+    </script>
+</html>
