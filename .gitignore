@@ -2,4 +2,4 @@
 *.pyc
 virtualenv/
 bats/
-.log
+*.log
