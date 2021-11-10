@@ -18,14 +18,14 @@ def feed():
 
 @app.route('/log')
 def log():
-    f = open(LOG_PATH, 'r+')
-    lines = f.readlines()
+    with open(LOG_PATH, 'r+') as f:
+        lines = f.readlines()
 
-    # Personally don't care to see calls to log in the log itself...
-    lines = [line for line in lines if "log" not in line]
-    f.truncate(0)
-    f.writelines(lines)
-    f.close()
+        # Personally don't care to see calls to log in the log itself...
+        lines = [line for line in lines if "log" not in line]
+        f.truncate(0)
+        f.writelines(lines)
+        
     return render_template('log.html', lines= lines or ["No logs"])
 
 @app.route('/clear', methods=["POST"])
