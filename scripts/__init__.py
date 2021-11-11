@@ -3,7 +3,12 @@ from flask import Flask
 import logging
 import os
 
-app = Flask(__name__)
+class MyFlask(Flask):
+    def __init__(self, with_socket_client: bool = False):
+        super().__init__()
+        self.with_socket_client = with_socket_client
+
+app = MyFlask(__name__)
 
 logging.basicConfig(level=logging.INFO)
 handler = logging.FileHandler(os.path.join("./scripts", "static", "log.log"), "a")

@@ -6,7 +6,7 @@ class Streamer:
 
     CAMERA_NUMBER = 2 #change depending on camera needs
 
-    def __init__(self):
+    def __init__(self, from_socket: bool = False):
         self.cap = cv2.VideoCapture(Streamer.CAMERA_NUMBER, cv2.CAP_DSHOW)
         self.cap.set(cv2.CAP_PROP_FPS, 30)
         self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter.fourcc("m", "j", "p", "g"))
@@ -14,6 +14,14 @@ class Streamer:
         self.cap.set(3, 1920)
         self.cap.set(4, 1080)
     
+    def _use_camera(self):
+        if self.cap.isOpened():
+                self._read_frame()
+                self.frame_en = cv2.imencode('.jpg', self.frame)[1].tobytes()
+                yield self._http_encoded(self.frame_en)
+        else:
+            raise Exception("Camera not available.")
+
     def _read_frame(self):
         self.ret, self.frame = self.cap.read()
         if not self.ret:
@@ -22,32 +30,35 @@ class Streamer:
     def _unavailable(self):
         unavailable_img = cv2.imread(os.path.join(os.getcwd(), "scripts", "static", "unavailable.png"))
         unavailable_img_en = cv2.imencode('.jpg', unavailable_img)[1].tobytes()
+        return (self._http_encoded(unavailable_img_en))
+    
+    def _http_encoded(self, frame) -> str:
         return (
             b'--frame\r\n'  
-            b'Content-Type: image/jpeg\r\n\r\n' + unavailable_img_en + b'\r\n'
+            b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n'
         )
 
-    def __iter__(self):
+    def next_frame(self):
+        try:
+            self._use_camera()
+        except:
+            yield self._unavailable()
+            print("Returned unavailable image.")
+
+    def http_generate(self):
         """Yields image for streaming consumption"""
 
         while True:
             try:
-                if self.cap.isOpened():
-                    self._read_frame()
-                else:
-                    raise Exception("Camera not available.")
+                self._use_camera()
             except:
                 yield self._unavailable()
                 print("Returned unavailable image.")
                 break
 
             self.key = cv2.waitKey(5) & 0xFF
-            self.frame_en = cv2.imencode('.jpg', self.frame)[1].tobytes()
 
-            yield (
-                b'--frame\r\n'
-                b'Content-Type: image/jpeg\r\n\r\n' + self.frame_en + b'\r\n'
-            )
+            yield (self._http_encoded(self.frame_en))
     
     def run_local_display(self):
         """Serves stream for local display in CV2 window"""

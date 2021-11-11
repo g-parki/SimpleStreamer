@@ -12,8 +12,8 @@ def watch():
 
 @app.route('/feed')
 def feed():
-    stream = Streamer()
-    return Response(stream_with_context(iter(stream)),
+    stream = Streamer(from_socket=app.with_socket_client)
+    return Response(stream_with_context(stream.http_generate()),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/log')
