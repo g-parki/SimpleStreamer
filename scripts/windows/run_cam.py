@@ -7,4 +7,4 @@ socketio: SocketIO = SocketIO(app)
 if (__name__ == 'main'):
     socketio.run(host='0.0.0.0', port=5750, debug=False)
 
-from . import cam_socket
+from . import cam_socket_server

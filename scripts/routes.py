@@ -12,8 +12,13 @@ def watch():
 
 @app.route('/feed')
 def feed():
-    stream = Streamer(from_socket=app.with_socket_client)
-    return Response(stream_with_context(stream.http_generate()),
+    if app.with_socket_client:
+        from scripts import socket_client
+        generator = socket_client.receiver.generate
+    else:
+        stream = Streamer()
+        generator = stream.http_generate
+    return Response(stream_with_context(generator()),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/log')

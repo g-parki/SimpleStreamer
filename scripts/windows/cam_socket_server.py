@@ -1,5 +1,5 @@
 from flask_socketio import SocketIO
-from scripts import socketio
+from .run_cam import socketio
 from scripts.streamer import Streamer
 
 class ClientCounter:
@@ -38,16 +38,13 @@ class Emitter:
         if not self._emitting:
             self.emit()
 
-class Router:
-    
-    def __init__(self):
-        self._emitter: Emitter = Emitter(Streamer(), socketio)
+emitter = Emitter(Streamer(), socketio)
 
-    @socketio.on("connect")
-    def increase_count(self):
-        self._emitter.counter.increment()
-        self._emitter.request_emit()
+@socketio.on("connect")
+def increase_count(self):
+    emitter.counter.increment()
+    emitter.request_emit()
 
-    @socketio.on("disconnect")
-    def decrease_count(self):
-        self._emitter.counter.decrement()
+@socketio.on("disconnect")
+def decrease_count(self):
+    emitter.counter.decrement()

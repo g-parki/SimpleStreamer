@@ -6,7 +6,7 @@ class Streamer:
 
     CAMERA_NUMBER = 2 #change depending on camera needs
 
-    def __init__(self, from_socket: bool = False):
+    def __init__(self):
         self.cap = cv2.VideoCapture(Streamer.CAMERA_NUMBER, cv2.CAP_DSHOW)
         self.cap.set(cv2.CAP_PROP_FPS, 30)
         self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter.fourcc("m", "j", "p", "g"))
