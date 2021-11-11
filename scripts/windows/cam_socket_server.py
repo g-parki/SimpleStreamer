@@ -17,15 +17,16 @@ class ClientCounter:
     def count(self):
         return self._count
 
-class Emitter(ClientCounter):
+class Emitter:
     
     def __init__(self, stream: Streamer, socket: SocketIO):
         self._stream = stream
         self._socket = socket
         self._emitting: bool = False
+        self.counter = ClientCounter()
 
     def emit(self):
-        while self._count:
+        while self.counter.count:
             self._emitting = True
             try:
                 self._socket.emit("frame available", {"frame": self._stream.next_frame()}, broadcast=True)
@@ -44,9 +45,9 @@ class Router:
 
     @socketio.on("connect")
     def increase_count(self):
-        self._emitter.increment()
+        self._emitter.counter.increment()
         self._emitter.request_emit()
 
     @socketio.on("disconnect")
     def decrease_count(self):
-        self._emitter.decrement()
+        self._emitter.counter.decrement()
