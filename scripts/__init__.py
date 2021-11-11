@@ -1,19 +1,38 @@
 #Initialize database and app
 from flask import Flask
+from datetime import datetime
 import logging
 import os
 
 class MyFlask(Flask):
-    def __init__(self, with_socket_client: bool = False):
-        super().__init__()
-        self.with_socket_client = with_socket_client
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.with_socket_client = False
 
 app = MyFlask(__name__)
 
-logging.basicConfig(level=logging.INFO)
-handler = logging.FileHandler(os.path.join("./scripts", "static", "log.log"), "a")
-werk_logger = logging.getLogger('werkzeug')
-werk_logger.addHandler(handler)
-app.logger.addHandler(handler)
+class Logger:
+
+    LOG_PATH = os.path.join(os.getcwd(),'scripts','static', 'log.log')
+    handler = logging.FileHandler(LOG_PATH, "a")
+    
+    def __init__(self, app: MyFlask):
+        logging.basicConfig(level=logging.INFO)
+        self._applogger = app.logger
+        self._werklogger = logging.getLogger('werkzeug')
+
+        self._applogger.addHandler(Logger.handler)
+        self._werklogger.addHandler(Logger.handler)
+
+    def log(self, message: str) -> None:
+        self._werklogger.info(message)
+
+    @staticmethod
+    def timestamp() -> str:
+        return datetime.now().strftime("[%d/%b/%Y %H:%M:%S]")
+
+logger = Logger(app)
+logger.log(f'\n {logger.timestamp()} server started')
 
 from scripts import routes
