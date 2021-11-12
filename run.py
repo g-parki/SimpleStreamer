@@ -1,6 +1,6 @@
 import argparse
 import os
-from scripts import app
+from scripts.app import app
 
 PORT_DEFAULT = 5700
 PORT_ALT = 5705

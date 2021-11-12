@@ -1,5 +1,5 @@
 from flask import render_template, Response, stream_with_context
-from scripts import app, logger
+from scripts.app import app, logger
 from scripts.streamer import Streamer
 
 @app.route('/watch')
@@ -9,11 +9,42 @@ def watch():
 @app.route('/feed')
 def feed():
     if app.with_socket_client:
-        from scripts import socket_client
-        generator = socket_client.receiver.generate
+        import socketio
+        from threading import Event
+        from queue import Queue
+
+        client = socketio.Client()
+        queue = Queue()
+        available_event = Event()
+        stop_event = Event()
+
+        def receiver():
+            while not stop_event.is_set():
+                if not queue.empty():
+                    print("yielding something")
+                    yield queue.get()
+            stop_event.clear()
+
+        @client.on("connect")
+        def connect():
+            print("connected")
+
+        @client.on("disconnect")
+        def disconnect():
+            print("disconnected")
+
+        @client.on("frame")
+        def frame(data):
+            queue.put(data)
+            available_event.set()
+
+        client.connect('http://192.168.1.26:5750')
+        generator = receiver
+        print("Using receiver")
     else:
-        stream = Streamer()
+        stream = Streamer(0)
         generator = stream.http_generate
+        print("Using normal streamer")
     return Response(stream_with_context(generator()),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 

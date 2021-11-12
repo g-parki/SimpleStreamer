@@ -4,20 +4,19 @@ import os
 class Streamer:
     """Class for serving stream either through generator or through local window"""
 
-    CAMERA_NUMBER = 2 #change depending on camera needs
+    CAMERA_DEFAULT= 2 #change depending on camera needs
 
-    def __init__(self):
-        self.cap = cv2.VideoCapture(Streamer.CAMERA_NUMBER, cv2.CAP_DSHOW)
-        self.cap.set(cv2.CAP_PROP_FPS, 30)
+    def __init__(self, camera: int = None):
+        _camera_num = camera if camera is not None else Streamer.CAMERA_DEFAULT
+        self.cap = cv2.VideoCapture(_camera_num)
+        #self.cap.set(cv2.CAP_PROP_FPS, 30)
         self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter.fourcc("m", "j", "p", "g"))
         self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter.fourcc("M", "J", "P", "G"))
-        self.cap.set(3, 1920)
-        self.cap.set(4, 1080)
     
     def _use_camera(self) -> None:
         if self.cap.isOpened():
             self._read_frame()
-            self.frame_en = cv2.imencode('.jpg', self.frame)[1].tobytes()
+            self.frame_en = cv2.imencode('.jpg', cv2.resize(self.frame, (720,405)))[1].tobytes()
         else:
             raise Exception("Camera not available.")
 
@@ -40,10 +39,11 @@ class Streamer:
     def next_frame(self):
         try:
             self._use_camera()
+            return self._http_encoded(self.frame_en)
         except:
-            yield self._unavailable()
             print("Returned unavailable image.")
-
+            return self._unavailable()
+            
     def http_generate(self):
         """Yields image for streaming consumption"""
         while True:

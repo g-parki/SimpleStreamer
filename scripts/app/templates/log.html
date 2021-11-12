@@ -12,6 +12,7 @@
     </body>
     <script>
     $(document).ready(function(){
+        window.scrollTo({ left: 0, top: document.body.scrollHeight, behavior: "smooth" });
         $("#clear").click(() => {
             $.ajax({
                 url: "/clear",
